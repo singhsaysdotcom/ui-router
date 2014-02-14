@@ -274,6 +274,8 @@ describe('uiSrefActive', function() {
           template: '<a ui-sref=".item({ id: 6 })" ui-sref-active="active">Contacts</a>'
         }
       }
+    }).state('contacts.list', {
+      url: '/list'
     }).state('contacts.item', {
       url: '/:id',
     }).state('contacts.item.detail', {
@@ -285,7 +287,23 @@ describe('uiSrefActive', function() {
     document = $document[0];
   }));
 
-  it('should update class for sibling uiSref', inject(function($rootScope, $q, $compile, $state) {
+  it('should update class for alternate states if altStates is provided', inject(function($rootScope, $q, $compile, $state) {
+    el = angular.element('<div><a ui-sref="contacts.item" ui-sref-active="active" data-alt-states="contacts.list">Contacts</a></div>');
+    template = $compile(el)($rootScope);
+    $rootScope.$digest();
+
+    expect(angular.element(template[0].querySelector('a')).attr('class')).toBe('');
+    $state.transitionTo('contacts.list');
+    $q.flush();
+    
+    expect(angular.element(template[0].querySelector('a')).attr('class')).toBe('active');
+
+    $state.transitionTo('contacts.item', { id: 5 });
+    $q.flush();
+    expect(angular.element(template[0].querySelector('a')).attr('class')).toBe('');
+  }));
+
+  it('should update class for nested uiSref', inject(function($rootScope, $q, $compile, $state) {
     el = angular.element('<div><a ui-sref="contacts" ui-sref-active="active">Contacts</a></div>');
     template = $compile(el)($rootScope);
     $rootScope.$digest();
@@ -298,7 +316,7 @@ describe('uiSrefActive', function() {
 
     $state.transitionTo('contacts.item', { id: 5 });
     $q.flush();
-    expect(angular.element(template[0].querySelector('a')).attr('class')).toBe('');
+    expect(angular.element(template[0].querySelector('a')).attr('class')).toBe('active');
   }));
 
   it('should match state\'s parameters', inject(function($rootScope, $q, $compile, $state) {

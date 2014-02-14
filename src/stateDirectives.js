@@ -172,7 +172,9 @@ function $StateActiveDirective($state, $stateParams, $interpolate) {
   return {
     restrict: "A",
     controller: ['$scope', '$element', '$attrs', function($scope, $element, $attrs) {
-      var state, params, activeClass;
+      var state, params, activeClass, alt_states;
+
+      if ($attrs.altStates) { alt_states = $attrs.altStates.split(','); }
 
       // There probably isn't much point in $observing this
       activeClass = $interpolate($attrs.uiSrefActive || '', false)($scope);
@@ -188,7 +190,16 @@ function $StateActiveDirective($state, $stateParams, $interpolate) {
 
       // Update route state
       function update() {
-        if ($state.$current.self === state && matchesParams()) {
+        if (alt_states) {
+          var match = false;
+          alt_states.forEach(function(d) { if ($state.includes(d)) match = true; });
+
+          if (match)
+            $element.addClass(activeClass);
+          else
+            $element.removeClass(activeClass);
+          
+        } else if ($state.includes(state.name) && matchesParams()) {
           $element.addClass(activeClass);
         } else {
           $element.removeClass(activeClass);
